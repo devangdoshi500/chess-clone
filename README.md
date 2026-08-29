@@ -47,3 +47,27 @@ The live integration test is opt-in:
 RUN_LICHESS_INTEGRATION=1 pytest -m integration
 ```
 
+## Inspect a historical move model
+
+Build and inspect an exact-position move-frequency model from the latest
+processed batch for a player:
+
+```bash
+python -m chess_clone.cli inspect-model USERNAME --examples 5
+```
+
+Use `--positions path/to/positions.parquet` to select a specific batch.
+
+## Run a small Stockfish analysis
+
+Install a Stockfish executable separately, then run a small sequential batch:
+
+```bash
+python -m chess_clone.cli analyze-positions USERNAME \
+  --nodes 500 \
+  --max-positions 10
+```
+
+Results are cached by canonical position, engine binary identity, and engine
+settings under `data/cache/stockfish/`. Analysis rows are written as Parquet
+under `data/processed/`. Use `--stockfish-path` when Stockfish is not on PATH.
