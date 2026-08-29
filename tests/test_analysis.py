@@ -145,14 +145,16 @@ def test_pipeline_reuses_cache_for_canonical_duplicate_positions(
 
     assert summary.position_records == 2
     assert summary.unique_positions == 1
-    assert summary.engine_calls == 1
+    assert summary.engine_calls == 3
     assert summary.cache_hits == 1
-    assert len(analyzer.calls) == 1
+    assert len(analyzer.calls) == 3
     assert analyzer.calls[0][0] == " ".join(chess.STARTING_FEN.split()[:4]) + " 0 1"
     rows = pq.read_table(output_path).to_pylist()
     assert len(rows) == 2
     assert [row["cache_hit"] for row in rows] == [False, True]
     assert all(row["score_cp"] == 31 for row in rows)
+    assert all(row["actual_move_score_cp"] == -31 for row in rows)
+    assert all(row["actual_move_mate_in"] is None for row in rows)
     assert all(row["nodes_requested"] == 100 for row in rows)
     assert all(row["threads_requested"] == 1 for row in rows)
     assert all(row["hash_mb_requested"] == 16 for row in rows)
@@ -169,7 +171,7 @@ def test_pipeline_reuses_cache_for_canonical_duplicate_positions(
         output_path=tmp_path / "analysis_second.parquet",
     )
     assert second_summary.engine_calls == 0
-    assert second_summary.cache_hits == 2
+    assert second_summary.cache_hits == 4
     assert second_analyzer.calls == []
 
 

@@ -1,5 +1,6 @@
-"""Command-line interface for chess-clone ingestion."""
+"""Command-line interface for chess-clone data and analysis workflows."""
 
+import json
 from pathlib import Path
 from typing import Annotated
 
@@ -14,10 +15,16 @@ from chess_clone.analysis import (
     default_analysis_output_path,
 )
 from chess_clone.ingestion import ingest_games
+from chess_clone.features import (
+    TimePressureThresholds,
+    build_behavior_features,
+    default_feature_output_path,
+    summarize_behavior_features,
+)
 from chess_clone.modeling import HistoricalMoveModel
 from chess_clone.providers import LichessProvider, ProviderError
 
-app = typer.Typer(no_args_is_help=True, help="Personalized chess data ingestion.")
+app = typer.Typer(no_args_is_help=True, help="Personalized chess data workflows.")
 
 
 @app.callback()
@@ -74,12 +81,32 @@ def ingest(
 
 def _latest_positions_file(username: str, processed_dir: Path) -> Path:
     safe_username = username.strip().lower()
-    matches = sorted(processed_dir.glob(f"positions_{safe_username}_*.parquet"))
+    matches = list(processed_dir.glob(f"positions_{safe_username}_*.parquet"))
     if not matches:
         raise FileNotFoundError(
             f"No processed position dataset found for '{username}' in {processed_dir}"
         )
-    return matches[-1]
+    return max(matches, key=lambda path: path.stat().st_mtime_ns)
+
+
+def _latest_analysis_file(username: str, processed_dir: Path) -> Path:
+    safe_username = username.strip().lower()
+    matches = list(processed_dir.glob(f"analysis_{safe_username}_*.parquet"))
+    if not matches:
+        raise FileNotFoundError(
+            f"No engine analysis dataset found for '{username}' in {processed_dir}"
+        )
+    return max(matches, key=lambda path: path.stat().st_mtime_ns)
+
+
+def _latest_feature_file(username: str, processed_dir: Path) -> Path:
+    safe_username = username.strip().lower()
+    matches = list(processed_dir.glob(f"features_{safe_username}_*.parquet"))
+    if not matches:
+        raise FileNotFoundError(
+            f"No behavioral feature dataset found for '{username}' in {processed_dir}"
+        )
+    return max(matches, key=lambda path: path.stat().st_mtime_ns)
 
 
 @app.command("inspect-model")
@@ -213,6 +240,89 @@ def analyze_positions(
     typer.echo(f"  Cache hits: {summary.cache_hits}")
     typer.echo(f"  Output rows: {summary.output_rows}")
     typer.echo(f"  Analysis Parquet: {summary.output_path}")
+
+
+@app.command("build-features")
+def build_features(
+    username: Annotated[str, typer.Argument(help="Player username in PositionRecords")],
+    positions: Annotated[
+        Path | None,
+        typer.Option(help="PositionRecords Parquet; defaults to latest player batch"),
+    ] = None,
+    analysis: Annotated[
+        Path | None,
+        typer.Option(help="Engine analysis Parquet; defaults to latest player batch"),
+    ] = None,
+    output: Annotated[
+        Path | None, typer.Option(help="Behavioral feature Parquet output path")
+    ] = None,
+    low_time_fraction: Annotated[
+        float,
+        typer.Option(
+            min=0.0,
+            max=1.0,
+            help="Flag low time below this fraction of initial time",
+        ),
+    ] = 0.10,
+    low_time_seconds: Annotated[
+        float,
+        typer.Option(min=0.0, help="Flag low time below this many seconds"),
+    ] = 30.0,
+    processed_dir: Annotated[
+        Path, typer.Option(hidden=True, help="Processed Parquet directory")
+    ] = Path("data/processed"),
+) -> None:
+    """Join positions and Stockfish output into behavioral decision features."""
+
+    try:
+        position_path = positions or _latest_positions_file(username, processed_dir)
+        analysis_path = analysis or _latest_analysis_file(username, processed_dir)
+        output_path = output or default_feature_output_path(username, processed_dir)
+        summary = build_behavior_features(
+            position_path,
+            analysis_path,
+            username,
+            output_path=output_path,
+            thresholds=TimePressureThresholds(
+                fraction=low_time_fraction, seconds=low_time_seconds
+            ),
+        )
+    except (FileNotFoundError, ValueError, RuntimeError) as exc:
+        typer.echo(f"Feature build failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo("Behavioral feature build complete")
+    typer.echo(f"  Player: {summary.username}")
+    typer.echo(f"  Available PositionRecords: {summary.available_position_records}")
+    typer.echo(f"  Analyzed PositionRecords: {summary.analyzed_position_records}")
+    typer.echo(f"  Feature rows: {summary.feature_rows}")
+    typer.echo(f"  Unanalyzed PositionRecords: {summary.unanalyzed_position_records}")
+    typer.echo(f"  Features Parquet: {summary.output_path}")
+
+
+@app.command("feature-summary")
+def feature_summary(
+    username: Annotated[str, typer.Argument(help="Player username")],
+    features: Annotated[
+        Path | None,
+        typer.Option(help="Behavioral feature Parquet; defaults to latest player batch"),
+    ] = None,
+    processed_dir: Annotated[
+        Path, typer.Option(hidden=True, help="Processed Parquet directory")
+    ] = Path("data/processed"),
+) -> None:
+    """Print Insight-style aggregate metrics for a behavioral dataset."""
+
+    try:
+        feature_path = features or _latest_feature_file(username, processed_dir)
+        summary = summarize_behavior_features(feature_path)
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"Feature summary failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Behavioral feature summary for {username}")
+    typer.echo(f"  Dataset: {feature_path}")
+    typer.echo(json.dumps(summary.to_dict(), indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

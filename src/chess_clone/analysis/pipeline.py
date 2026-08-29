@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Protocol, Self
 
+import chess
 import pyarrow as pa
 import pyarrow.parquet as pq
 
@@ -48,6 +49,8 @@ ANALYSIS_SCHEMA = pa.schema(
         ("actual_move_uci", pa.string()),
         ("cache_key", pa.string()),
         ("cache_hit", pa.bool_()),
+        ("actual_move_cache_key", pa.string()),
+        ("actual_move_cache_hit", pa.bool_()),
         ("engine_identity", pa.string()),
         ("nodes_requested", pa.int64()),
         ("multipv_requested", pa.int64()),
@@ -58,6 +61,8 @@ ANALYSIS_SCHEMA = pa.schema(
         ("pv_rank", pa.int64()),
         ("score_cp", pa.int64()),
         ("mate_in", pa.int64()),
+        ("actual_move_score_cp", pa.int64()),
+        ("actual_move_mate_in", pa.int64()),
         ("best_move_uci", pa.string()),
         ("pv_uci", pa.string()),
         ("depth", pa.int64()),
@@ -125,27 +130,61 @@ def analyze_position_dataset(
 
     with analyzer as active_analyzer:
         engine_identity = active_analyzer.engine_identity
+
+        def get_analysis(fen: str) -> tuple[str, bool, list[EngineLine]]:
+            nonlocal engine_calls, cache_hits
+            position_key = canonical_position_key(fen)
+            normalized_fen = f"{position_key} 0 1"
+            key = build_analysis_cache_key(normalized_fen, settings, engine_identity)
+            cached = cache.get(key)
+            if cached is not None:
+                cache_hits += 1
+                return key, True, list(cached.lines)
+            lines = active_analyzer.analyze(normalized_fen, settings)
+            engine_calls += 1
+            cache.put(
+                key,
+                position_key=position_key,
+                engine_identity=engine_identity,
+                settings=settings,
+                lines=lines,
+            )
+            return key, False, lines
+
         for record in records:
             fen = str(record["fen"])
             position_key = canonical_position_key(fen)
             unique_positions.add(position_key)
-            cache_key = build_analysis_cache_key(fen, settings, engine_identity)
-            cached = cache.get(cache_key)
-            cache_hit = cached is not None
-            if cached is None:
-                analysis_fen = f"{position_key} 0 1"
-                lines = active_analyzer.analyze(analysis_fen, settings)
-                engine_calls += 1
-                cache.put(
-                    cache_key,
-                    position_key=position_key,
-                    engine_identity=engine_identity,
-                    settings=settings,
-                    lines=lines,
+            analysis_fen = f"{position_key} 0 1"
+            cache_key, cache_hit, lines = get_analysis(analysis_fen)
+
+            board = chess.Board(analysis_fen)
+            actual_move = chess.Move.from_uci(str(record["actual_move_uci"]))
+            if actual_move not in board.legal_moves:
+                raise ValueError(
+                    f"Illegal actual move {actual_move.uci()} for {record['game_id']} "
+                    f"ply {record['ply']}"
                 )
-            else:
-                lines = list(cached.lines)
-                cache_hits += 1
+            board.push(actual_move)
+            post_move_fen = board.fen(en_passant="fen")
+            actual_cache_key, actual_cache_hit, actual_lines = get_analysis(
+                post_move_fen
+            )
+            actual_best = (
+                min(actual_lines, key=lambda line: line.rank)
+                if actual_lines
+                else None
+            )
+            actual_score_cp = (
+                -actual_best.score_cp
+                if actual_best is not None and actual_best.score_cp is not None
+                else None
+            )
+            actual_mate_in = (
+                -actual_best.mate_in
+                if actual_best is not None and actual_best.mate_in is not None
+                else None
+            )
 
             for line in lines:
                 output_rows.append(
@@ -159,6 +198,8 @@ def analyze_position_dataset(
                         "actual_move_uci": record["actual_move_uci"],
                         "cache_key": cache_key,
                         "cache_hit": cache_hit,
+                        "actual_move_cache_key": actual_cache_key,
+                        "actual_move_cache_hit": actual_cache_hit,
                         "engine_identity": engine_identity,
                         "nodes_requested": settings.nodes,
                         "multipv_requested": settings.multipv,
@@ -171,6 +212,8 @@ def analyze_position_dataset(
                         "pv_rank": line.rank,
                         "score_cp": line.score_cp,
                         "mate_in": line.mate_in,
+                        "actual_move_score_cp": actual_score_cp,
+                        "actual_move_mate_in": actual_mate_in,
                         "best_move_uci": line.best_move_uci,
                         "pv_uci": line.pv_uci,
                         "depth": line.depth,

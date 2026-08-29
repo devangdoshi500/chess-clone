@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import SimpleNamespace
 
 from typer.testing import CliRunner
 
@@ -121,5 +122,47 @@ def test_cli_analyze_positions_runs_small_cached_batch(monkeypatch, tmp_path: Pa
     assert result.exit_code == 0, result.output
     assert "Engine analysis complete" in result.output
     assert "PositionRecords: 2" in result.output
-    assert "Engine calls: 2" in result.output
+    assert "Engine calls: 4" in result.output
     assert output_path.is_file()
+
+
+def test_cli_build_features_prints_join_accounting(monkeypatch, tmp_path: Path) -> None:
+    output_path = tmp_path / "features.parquet"
+    captured = {}
+
+    def fake_build(position_path, analysis_path, username, **kwargs):
+        captured["thresholds"] = kwargs["thresholds"]
+        return SimpleNamespace(
+            username=username,
+            available_position_records=12,
+            analyzed_position_records=10,
+            feature_rows=10,
+            unanalyzed_position_records=2,
+            output_path=kwargs["output_path"],
+        )
+
+    monkeypatch.setattr(cli, "build_behavior_features", fake_build)
+    result = runner.invoke(
+        cli.app,
+        [
+            "build-features",
+            "TargetPlayer",
+            "--positions",
+            str(tmp_path / "positions.parquet"),
+            "--analysis",
+            str(tmp_path / "analysis.parquet"),
+            "--output",
+            str(output_path),
+            "--low-time-fraction",
+            "0.15",
+            "--low-time-seconds",
+            "20",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Behavioral feature build complete" in result.output
+    assert "Feature rows: 10" in result.output
+    assert "Unanalyzed PositionRecords: 2" in result.output
+    assert captured["thresholds"].fraction == 0.15
+    assert captured["thresholds"].seconds == 20
