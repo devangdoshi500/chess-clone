@@ -5,9 +5,11 @@ __pycache__/
 .venv/
 dist/
 build/
+.env
+.DS_Store
+*.parquet
 
 data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
-
