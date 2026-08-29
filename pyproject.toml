@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "chess-clone"
+version = "0.1.0"
+description = "Data ingestion for personalized chess-player modeling"
+readme = "README.md"
+requires-python = ">=3.12,<4"
+dependencies = [
+    "httpx>=0.27,<1",
+    "pyarrow>=17,<22",
+    "python-chess>=1.999,<2",
+    "typer>=0.12,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+
+[project.scripts]
+chess-clone = "chess_clone.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/chess_clone"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+markers = [
+    "integration: tests that make live network requests (disabled by default)",
+]
+

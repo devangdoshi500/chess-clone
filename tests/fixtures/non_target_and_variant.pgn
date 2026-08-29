@@ -1,0 +1,18 @@
+[Event "rated atomic game"]
+[Site "https://lichess.org/variant1"]
+[White "TargetPlayer"]
+[Black "Opponent"]
+[Result "1-0"]
+[Variant "Atomic"]
+
+1. e4 f6 1-0
+
+[Event "rated blitz game"]
+[Site "https://lichess.org/other001"]
+[White "OtherOne"]
+[Black "OtherTwo"]
+[Result "1/2-1/2"]
+[Variant "Standard"]
+
+1. e4 e5 1/2-1/2
+
