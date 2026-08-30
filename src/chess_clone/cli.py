@@ -46,6 +46,13 @@ def ingest(
         str | None,
         typer.Option(help="Epoch milliseconds or ISO-8601 end date/time"),
     ] = None,
+    perf_type: Annotated[
+        str | None,
+        typer.Option(
+            "--perf-type",
+            help="One standard Lichess speed to request (for example, blitz)",
+        ),
+    ] = None,
     raw_dir: Annotated[
         Path, typer.Option(hidden=True, help="Raw PGN destination")
     ] = Path("data/raw"),
@@ -62,6 +69,7 @@ def ingest(
             max_games=max_games,
             since=since,
             until=until,
+            perf_type=perf_type,
             raw_dir=raw_dir,
             processed_dir=processed_dir,
         )

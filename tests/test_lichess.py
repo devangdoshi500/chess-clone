@@ -43,6 +43,32 @@ def test_download_requests_rated_standard_pgn_with_metadata() -> None:
     assert params["until"] == "1738367999000"
 
 
+def test_download_can_request_only_rated_standard_blitz() -> None:
+    observed: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        observed["request"] = request
+        return httpx.Response(200, content=b"pgn\n", request=request)
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        LichessProvider(client=client).download_games(
+            "DrNykterstein", max_games=1000, perf_type="Blitz"
+        )
+
+    request = observed["request"]
+    assert isinstance(request, httpx.Request)
+    assert request.url.params["rated"] == "true"
+    assert request.url.params["perfType"] == "blitz"
+    assert request.url.params["max"] == "1000"
+
+
+def test_rejects_nonstandard_performance_type() -> None:
+    with pytest.raises(ValueError, match="perf_type must be one of"):
+        LichessProvider().download_games(
+            "valid-user", max_games=1, perf_type="chess960"
+        )
+
+
 @pytest.mark.parametrize("username", ["", "bad/name", "x" * 31])
 def test_invalid_username_is_rejected_without_request(username: str) -> None:
     provider = LichessProvider()
@@ -88,4 +114,3 @@ def test_rejects_invalid_range() -> None:
         LichessProvider().download_games(
             "valid-user", max_games=1, since="2025-02-01", until="2025-01-01"
         )
-

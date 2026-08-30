@@ -19,6 +19,7 @@ class FixtureProvider(GameProvider):
         max_games: int | None = None,
         since: DateInput = None,
         until: DateInput = None,
+        perf_type: str | None = None,
     ) -> bytes:
         return self.payload
 
@@ -42,4 +43,3 @@ def test_pipeline_preserves_raw_bytes_and_writes_parquet(tmp_path: Path) -> None
     assert positions.num_rows == 5
     assert "played_at" in games.column_names
     assert "clock_seconds_after_move" in positions.column_names
-

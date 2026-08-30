@@ -42,6 +42,6 @@ class GameProvider(ABC):
         max_games: int | None = None,
         since: DateInput = None,
         until: DateInput = None,
+        perf_type: str | None = None,
     ) -> bytes:
         """Download games as untouched provider response bytes."""
-

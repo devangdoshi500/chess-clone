@@ -19,6 +19,9 @@ _USERNAME_RE: Final = re.compile(r"^[A-Za-z0-9_-]{1,30}$")
 _STANDARD_PERF_TYPES: Final = (
     "ultraBullet,bullet,blitz,rapid,classical,correspondence"
 )
+_INDIVIDUAL_STANDARD_PERF_TYPES: Final = frozenset(
+    {"ultrabullet", "bullet", "blitz", "rapid", "classical", "correspondence"}
+)
 
 
 def to_epoch_milliseconds(value: DateInput, *, name: str) -> int | None:
@@ -74,6 +77,7 @@ class LichessProvider(GameProvider):
         max_games: int | None = None,
         since: DateInput = None,
         until: DateInput = None,
+        perf_type: str | None = None,
     ) -> bytes:
         username = username.strip()
         if not _USERNAME_RE.fullmatch(username):
@@ -82,6 +86,13 @@ class LichessProvider(GameProvider):
             )
         if max_games is not None and max_games < 1:
             raise ValueError("max_games must be at least 1")
+        requested_perf_type = perf_type.strip().casefold() if perf_type else None
+        if (
+            requested_perf_type is not None
+            and requested_perf_type not in _INDIVIDUAL_STANDARD_PERF_TYPES
+        ):
+            allowed = ", ".join(sorted(_INDIVIDUAL_STANDARD_PERF_TYPES))
+            raise ValueError(f"perf_type must be one of: {allowed}")
 
         since_ms = to_epoch_milliseconds(since, name="since")
         until_ms = to_epoch_milliseconds(until, name="until")
@@ -90,7 +101,7 @@ class LichessProvider(GameProvider):
 
         params: dict[str, str | int | bool] = {
             "rated": True,
-            "perfType": _STANDARD_PERF_TYPES,
+            "perfType": requested_perf_type or _STANDARD_PERF_TYPES,
             "moves": True,
             "tags": True,
             "clocks": True,

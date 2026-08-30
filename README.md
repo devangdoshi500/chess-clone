@@ -24,6 +24,8 @@ python -m pip install -e '.[dev]'
 python -m chess_clone.cli ingest USERNAME --max-games 100
 ```
 
+Use `--perf-type blitz` to ask Lichess for rated standard blitz games only.
+
 `--since` and `--until` accept a Unix timestamp in milliseconds, an ISO-8601
 date, or an ISO-8601 datetime. For example:
 

@@ -32,13 +32,18 @@ def ingest_games(
     max_games: int | None = None,
     since: DateInput = None,
     until: DateInput = None,
+    perf_type: str | None = None,
     raw_dir: Path = Path("data/raw"),
     processed_dir: Path = Path("data/processed"),
 ) -> IngestionSummary:
     """Download, preserve, normalize, and persist one ingestion batch."""
 
     pgn_bytes = provider.download_games(
-        username, max_games=max_games, since=since, until=until
+        username,
+        max_games=max_games,
+        since=since,
+        until=until,
+        perf_type=perf_type,
     )
     safe_username = re.sub(r"[^A-Za-z0-9_-]", "_", username.strip()).lower()
     batch_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
@@ -62,4 +67,3 @@ def ingest_games(
         games_path=games_path,
         positions_path=positions_path,
     )
-
