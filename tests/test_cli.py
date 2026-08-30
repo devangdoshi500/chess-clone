@@ -166,3 +166,49 @@ def test_cli_build_features_prints_join_accounting(monkeypatch, tmp_path: Path) 
     assert "Unanalyzed PositionRecords: 2" in result.output
     assert captured["thresholds"].fraction == 0.15
     assert captured["thresholds"].seconds == 20
+
+
+def test_cli_train_model_prints_dataset_accounting(monkeypatch, tmp_path: Path) -> None:
+    artifact_dir = tmp_path / "model"
+
+    def fake_train(username, **kwargs):
+        return SimpleNamespace(
+            username=username,
+            total_decisions=100,
+            inside_top_5_decisions=88,
+            outside_top_5_decisions=12,
+            runtime_seconds=1.25,
+            artifact_dir=kwargs["artifact_dir"],
+            metrics={"models": {}},
+        )
+
+    monkeypatch.setattr(cli, "train_personalized_ranker", fake_train)
+    result = runner.invoke(
+        cli.app,
+        [
+            "train-model",
+            "TargetPlayer",
+            "--features",
+            str(tmp_path / "features.parquet"),
+            "--analysis",
+            str(tmp_path / "analysis.parquet"),
+            "--games",
+            str(tmp_path / "games.parquet"),
+            "--artifact-dir",
+            str(artifact_dir),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Inside top 5: 88" in result.output
+    assert f"Artifact directory: {artifact_dir}" in result.output
+
+
+def test_cli_evaluate_model_prints_saved_metrics(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        cli, "evaluate_saved_artifact", lambda path: {"test": {"accuracy": 0.5}}
+    )
+    result = runner.invoke(cli.app, ["evaluate-model", str(tmp_path / "model")])
+
+    assert result.exit_code == 0, result.output
+    assert '"accuracy": 0.5' in result.output

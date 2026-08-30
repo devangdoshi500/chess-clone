@@ -13,6 +13,7 @@ dependencies = [
     "pyarrow>=17,<22",
     "python-chess>=1.999,<2",
     "typer>=0.12,<1",
+    "scikit-learn>=1.8,<2",
 ]
 
 [project.optional-dependencies]
@@ -30,4 +31,3 @@ testpaths = ["tests"]
 markers = [
     "integration: tests that make live network requests (disabled by default)",
 ]
-

@@ -21,7 +21,12 @@ from chess_clone.features import (
     default_feature_output_path,
     summarize_behavior_features,
 )
-from chess_clone.modeling import HistoricalMoveModel
+from chess_clone.modeling import (
+    HistoricalMoveModel,
+    default_model_artifact_dir,
+    evaluate_saved_artifact,
+    train_personalized_ranker,
+)
 from chess_clone.providers import LichessProvider, ProviderError
 
 app = typer.Typer(no_args_is_help=True, help="Personalized chess data workflows.")
@@ -113,6 +118,16 @@ def _latest_feature_file(username: str, processed_dir: Path) -> Path:
     if not matches:
         raise FileNotFoundError(
             f"No behavioral feature dataset found for '{username}' in {processed_dir}"
+        )
+    return max(matches, key=lambda path: path.stat().st_mtime_ns)
+
+
+def _latest_games_file(username: str, processed_dir: Path) -> Path:
+    safe_username = username.strip().lower()
+    matches = list(processed_dir.glob(f"games_{safe_username}_*.parquet"))
+    if not matches:
+        raise FileNotFoundError(
+            f"No normalized game dataset found for '{username}' in {processed_dir}"
         )
     return max(matches, key=lambda path: path.stat().st_mtime_ns)
 
@@ -331,6 +346,80 @@ def feature_summary(
     typer.echo(f"Behavioral feature summary for {username}")
     typer.echo(f"  Dataset: {feature_path}")
     typer.echo(json.dumps(summary.to_dict(), indent=2, sort_keys=True))
+
+
+@app.command("train-model")
+def train_model(
+    username: Annotated[str, typer.Argument(help="Player username")],
+    features: Annotated[
+        Path | None,
+        typer.Option(help="BehaviorFeature Parquet; defaults to latest player batch"),
+    ] = None,
+    analysis: Annotated[
+        Path | None,
+        typer.Option(help="Stockfish analysis Parquet; defaults to latest player batch"),
+    ] = None,
+    games: Annotated[
+        Path | None,
+        typer.Option(help="Normalized games Parquet; defaults to latest player batch"),
+    ] = None,
+    artifact_dir: Annotated[
+        Path | None,
+        typer.Option(help="Model artifact directory; defaults under artifacts/models"),
+    ] = None,
+    processed_dir: Annotated[
+        Path, typer.Option(hidden=True, help="Processed Parquet directory")
+    ] = Path("data/processed"),
+    artifact_root: Annotated[
+        Path, typer.Option(hidden=True, help="Default local model artifact root")
+    ] = Path("artifacts/models"),
+) -> None:
+    """Train and evaluate the first personalized candidate-ranking baseline."""
+
+    try:
+        feature_path = features or _latest_feature_file(username, processed_dir)
+        analysis_path = analysis or _latest_analysis_file(username, processed_dir)
+        games_path = games or _latest_games_file(username, processed_dir)
+        destination = artifact_dir or default_model_artifact_dir(
+            username, artifact_root
+        )
+        summary = train_personalized_ranker(
+            username,
+            features_path=feature_path,
+            analysis_path=analysis_path,
+            games_path=games_path,
+            artifact_dir=destination,
+        )
+    except (FileNotFoundError, FileExistsError, RuntimeError, ValueError) as exc:
+        typer.echo(f"Model training failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo("Personalized candidate-ranking training complete")
+    typer.echo(f"  Player: {summary.username}")
+    typer.echo(f"  Total decisions: {summary.total_decisions}")
+    typer.echo(f"  Inside top 5: {summary.inside_top_5_decisions}")
+    typer.echo(f"  Outside top 5: {summary.outside_top_5_decisions}")
+    typer.echo(f"  Runtime seconds: {summary.runtime_seconds:.3f}")
+    typer.echo(f"  Artifact directory: {summary.artifact_dir}")
+    typer.echo("Evaluation metrics:")
+    typer.echo(json.dumps(summary.metrics, indent=2, sort_keys=True))
+
+
+@app.command("evaluate-model")
+def evaluate_model(
+    artifact_path: Annotated[
+        Path, typer.Argument(help="Saved model artifact directory")
+    ],
+) -> None:
+    """Inspect the held-out evaluation stored with a trained ranker."""
+
+    try:
+        metrics = evaluate_saved_artifact(artifact_path)
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"Model evaluation failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Saved model evaluation: {artifact_path}")
+    typer.echo(json.dumps(metrics, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

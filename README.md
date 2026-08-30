@@ -136,3 +136,28 @@ The `BehaviorFeatureRecord` API groups fields conceptually into pre-decision
 inference features, observed behavior, and post-move diagnostics. Actual-move
 evaluation, centipawn loss, rank, top-N flags, and after-move winning chance are
 labels/diagnostics and should not be supplied as inference-time inputs.
+
+## Train the first personalized move ranker
+
+Train the leakage-safe candidate-ranking baseline from the latest normalized
+games, behavioral features, and Stockfish analysis for a player:
+
+```bash
+python -m chess_clone.cli train-model DrNykterstein \
+  --features data/processed/features_drnykterstein_BATCH.parquet \
+  --analysis data/processed/analysis_drnykterstein_BATCH.parquet \
+  --games data/processed/games_drnykterstein_BATCH.parquet
+```
+
+The task retains all decisions for accounting but trains only where the actual
+move is one of the available MultiPV top-five candidates. Entire games are
+split chronologically 70/15/15. Preprocessing is fitted on training games only,
+and current-move clocks, actual-move behavior, and post-move diagnostics are
+excluded. Local model, preprocessing, split, feature, and evaluation artifacts
+are written under the ignored `artifacts/models/` directory.
+
+Inspect a saved evaluation with:
+
+```bash
+python -m chess_clone.cli evaluate-model artifacts/models/RUN_DIRECTORY
+```
