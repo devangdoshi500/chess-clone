@@ -118,6 +118,9 @@ def test_candidate_generation_has_one_positive_and_keeps_outside_for_reporting()
         positives[row["decision_id"]] += int(row["chosen"])
         assert row["candidate_move_uci"] in MOVES
         assert row["candidate_piece_moved"] in {"pawn", "knight"}
+        assert row["candidate_source_square"] in {"e2", "d2", "g1", "c2", "b1"}
+        assert row["candidate_destination_square"] in {"e4", "d4", "f3", "c4", "c3"}
+        assert row["candidate_manhattan_displacement"] >= 1
     assert set(positives.values()) == {1}
 
 

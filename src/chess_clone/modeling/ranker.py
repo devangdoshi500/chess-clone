@@ -334,12 +334,14 @@ def ranking_metrics(
         chosen_row, chosen_probability = next(
             (row, probability) for row, probability in candidates if row["chosen"]
         )
+        predicted_engine_rank = int(ranked[0][0]["engine_rank"])
         results.append(
             {
                 "decision_id": decision_id,
                 "predicted_rank": chosen_index,
                 "chosen_probability": chosen_probability,
                 "actual_engine_rank": int(chosen_row["engine_rank"]),
+                "predicted_engine_rank": predicted_engine_rank,
                 "game_phase": str(chosen_row["game_phase"]),
                 "pre_move_time_pressure": str(
                     chosen_row["pre_move_time_pressure"]
@@ -350,6 +352,9 @@ def ranking_metrics(
         )
     if not results:
         raise ValueError("No decisions available for ranking metrics")
+    non_rank_1 = [
+        result for result in results if int(result["actual_engine_rank"]) > 1
+    ]
 
     return {
         "decision_count": len(results),
@@ -366,6 +371,24 @@ def ranking_metrics(
         )
         / len(results),
         "maximum_probability_sum_error": max_sum_error,
+        "non_rank_1": {
+            "decision_count": len(non_rank_1),
+            "exact_move_accuracy": (
+                sum(int(result["predicted_rank"]) == 1 for result in non_rank_1)
+                / len(non_rank_1)
+                if non_rank_1
+                else None
+            ),
+            "mean_reciprocal_rank": (
+                sum(1.0 / int(result["predicted_rank"]) for result in non_rank_1)
+                / len(non_rank_1)
+                if non_rank_1
+                else None
+            ),
+        },
+        "confusion_matrix_actual_vs_predicted_engine_rank": _confusion_matrix(
+            results
+        ),
         "accuracy_by_actual_stockfish_rank": _accuracy_breakdown(
             results, "actual_engine_rank"
         ),
@@ -433,4 +456,18 @@ def _accuracy_breakdown(
             / len(items),
         }
         for value, items in sorted(grouped.items())
+    }
+
+
+def _confusion_matrix(
+    results: list[dict[str, object]],
+) -> dict[str, dict[str, int]]:
+    matrix: dict[str, Counter[str]] = defaultdict(Counter)
+    for result in results:
+        matrix[str(result["actual_engine_rank"])][
+            str(result["predicted_engine_rank"])
+        ] += 1
+    return {
+        actual: {predicted: counts.get(predicted, 0) for predicted in map(str, range(1, 6))}
+        for actual, counts in sorted(matrix.items())
     }

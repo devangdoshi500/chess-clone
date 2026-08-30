@@ -8,6 +8,7 @@ from typing import Iterable
 import chess
 
 from chess_clone.features.evaluation import evaluation_to_centipawns
+from chess_clone.modeling.historical import canonical_position_key
 
 DecisionKey = tuple[str, int]
 
@@ -87,6 +88,54 @@ CONTEXT_FEATURE_FIELDS = (
 )
 
 FULL_FEATURE_FIELDS = ENGINE_FEATURE_FIELDS + CONTEXT_FEATURE_FIELDS
+
+BOOSTED_CANDIDATE_FEATURE_FIELDS = (
+    "candidate_move_uci",
+    "candidate_piece_moved",
+    "candidate_source_square",
+    "candidate_destination_square",
+    "candidate_is_capture",
+    "candidate_gives_check",
+    "candidate_is_castle",
+    "candidate_is_promotion",
+    "candidate_captured_piece_type",
+    "candidate_material_change",
+    "candidate_develops_minor_piece",
+    "candidate_moves_queen",
+    "candidate_trades_queens",
+    "candidate_creates_queen_trade_opportunity",
+    "candidate_moves_toward_opponent",
+    "candidate_enters_opponent_territory",
+    "candidate_is_pawn_push",
+    "candidate_is_passed_pawn_push",
+    "candidate_repeats_previous_player_post_position",
+    "candidate_file_displacement",
+    "candidate_rank_displacement",
+    "candidate_manhattan_displacement",
+)
+
+BOOSTED_CONTEXT_FEATURE_FIELDS = (
+    "move_number",
+    "game_phase",
+    "material_balance",
+    "legal_move_count",
+    "player_in_check",
+    "castling_rights_available",
+    "opening_eco",
+    "opening_family",
+    "player_rating",
+    "opponent_rating",
+    "rating_difference",
+    "pre_move_clock_seconds",
+    "pre_move_time_fraction",
+    "pre_move_time_pressure",
+    "approximate_winning_chance_before",
+    "player_color",
+    "speed",
+    "initial_time_seconds",
+    "increment_seconds",
+    "time_control",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -190,6 +239,7 @@ def build_candidate_dataset(
     candidate_rows: list[dict[str, object]] = []
     decisions: list[dict[str, object]] = []
     seen_decisions: set[DecisionKey] = set()
+    previous_player_post_by_game: dict[str, str] = {}
     inside = 0
 
     for feature in sorted(
@@ -244,6 +294,10 @@ def build_candidate_dataset(
                 actual_move=actual_move,
                 best_evaluation=best_eval,
                 pre_move_clock=pre_move_clocks[key],
+                played_at=split.game_dates[key[0]],
+                previous_player_post_position=previous_player_post_by_game.get(
+                    key[0]
+                ),
             )
             for line in lines
         ]
@@ -253,6 +307,11 @@ def build_candidate_dataset(
                 f"Decision {key} has {positives} positive candidate rows; expected 1"
             )
         candidate_rows.extend(generated)
+        actual_board = chess.Board(str(feature["fen"]))
+        actual_board.push_uci(actual_move)
+        previous_player_post_by_game[key[0]] = canonical_position_key(
+            actual_board.fen(en_passant="fen")
+        )
 
     unmatched = set(analyses) - seen_decisions
     if unmatched:
@@ -304,6 +363,8 @@ def _candidate_row(
     actual_move: str,
     best_evaluation: int,
     pre_move_clock: float | None,
+    played_at: datetime,
+    previous_player_post_position: str | None,
 ) -> dict[str, object]:
     board = chess.Board(str(feature["fen"]))
     move_text = str(line["best_move_uci"])
@@ -320,6 +381,26 @@ def _candidate_row(
     is_capture = board.is_capture(move)
     is_castle = board.is_castling(move)
     is_promotion = move.promotion is not None
+    source_file = chess.square_file(move.from_square)
+    source_rank = chess.square_rank(move.from_square)
+    destination_file = chess.square_file(move.to_square)
+    destination_rank = chess.square_rank(move.to_square)
+    develops_minor = _develops_minor_piece(piece, move)
+    moves_queen = piece is not None and piece.piece_type == chess.QUEEN
+    trades_queens = (
+        moves_queen and captured is not None and captured.piece_type == chess.QUEEN
+    )
+    moves_toward_opponent = (
+        destination_rank > source_rank
+        if player_color == chess.WHITE
+        else destination_rank < source_rank
+    )
+    enters_opponent_territory = (
+        destination_rank >= 4 if player_color == chess.WHITE else destination_rank <= 3
+    )
+    is_pawn_push = piece is not None and piece.piece_type == chess.PAWN
+    is_passed_pawn_push = is_pawn_push and _is_passed_pawn(board, move.from_square)
+    queen_trade_opportunity_before = _queens_attack_each_other(board)
     board.push(move)
     material_change = (
         (_MATERIAL_VALUES[captured.piece_type] if captured else 0)
@@ -339,11 +420,13 @@ def _candidate_row(
         else None
     )
     decision_id = f"{feature['game_id']}:{feature['ply']}"
+    candidate_position = canonical_position_key(board.fen(en_passant="fen"))
     return {
         "decision_id": decision_id,
         "game_id": str(feature["game_id"]),
         "ply": int(feature["ply"]),
         "split": split_name,
+        "played_at": played_at,
         "canonical_position": canonical_position,
         "actual_move_uci": actual_move,
         "chosen": move_text == actual_move,
@@ -352,6 +435,8 @@ def _candidate_row(
         "evaluation_difference_from_best": best_evaluation - candidate_eval,
         "candidate_move_uci": move_text,
         "candidate_piece_moved": chess.piece_name(piece.piece_type) if piece else None,
+        "candidate_source_square": chess.square_name(move.from_square),
+        "candidate_destination_square": chess.square_name(move.to_square),
         "candidate_is_capture": is_capture,
         "candidate_gives_check": board.is_check(),
         "candidate_is_castle": is_castle,
@@ -360,6 +445,25 @@ def _candidate_row(
             chess.piece_name(captured.piece_type) if captured else None
         ),
         "candidate_material_change": material_change,
+        "candidate_develops_minor_piece": develops_minor,
+        "candidate_moves_queen": moves_queen,
+        "candidate_trades_queens": trades_queens,
+        "candidate_creates_queen_trade_opportunity": (
+            _queens_attack_each_other(board) and not queen_trade_opportunity_before
+        ),
+        "candidate_moves_toward_opponent": moves_toward_opponent,
+        "candidate_enters_opponent_territory": enters_opponent_territory,
+        "candidate_is_pawn_push": is_pawn_push,
+        "candidate_is_passed_pawn_push": is_passed_pawn_push,
+        "candidate_repeats_previous_player_post_position": (
+            previous_player_post_position is not None
+            and candidate_position == previous_player_post_position
+        ),
+        "candidate_file_displacement": abs(destination_file - source_file),
+        "candidate_rank_displacement": abs(destination_rank - source_rank),
+        "candidate_manhattan_displacement": (
+            abs(destination_file - source_file) + abs(destination_rank - source_rank)
+        ),
         "move_number": int(feature["move_number"]),
         "game_phase": feature.get("game_phase"),
         "material_balance": feature.get("material_balance"),
@@ -413,3 +517,43 @@ def _pre_move_time_pressure(clock: float | None, initial: object) -> bool | None
         return None
     fraction_low = initial is not None and float(initial) > 0 and clock / float(initial) < 0.10
     return clock < 30.0 or fraction_low
+
+
+def _develops_minor_piece(piece: chess.Piece | None, move: chess.Move) -> bool:
+    if piece is None or piece.piece_type not in {chess.KNIGHT, chess.BISHOP}:
+        return False
+    starting_squares = (
+        {chess.B1, chess.G1, chess.C1, chess.F1}
+        if piece.color == chess.WHITE
+        else {chess.B8, chess.G8, chess.C8, chess.F8}
+    )
+    return move.from_square in starting_squares
+
+
+def _is_passed_pawn(board: chess.Board, square: chess.Square) -> bool:
+    pawn = board.piece_at(square)
+    if pawn is None or pawn.piece_type != chess.PAWN:
+        return False
+    file_index = chess.square_file(square)
+    rank_index = chess.square_rank(square)
+    enemy_pawns = board.pieces(chess.PAWN, not pawn.color)
+    for enemy_square in enemy_pawns:
+        enemy_file = chess.square_file(enemy_square)
+        enemy_rank = chess.square_rank(enemy_square)
+        if abs(enemy_file - file_index) > 1:
+            continue
+        if pawn.color == chess.WHITE and enemy_rank > rank_index:
+            return False
+        if pawn.color == chess.BLACK and enemy_rank < rank_index:
+            return False
+    return True
+
+
+def _queens_attack_each_other(board: chess.Board) -> bool:
+    white_queens = board.pieces(chess.QUEEN, chess.WHITE)
+    black_queens = board.pieces(chess.QUEEN, chess.BLACK)
+    return any(
+        black_square in board.attacks(white_square)
+        for white_square in white_queens
+        for black_square in black_queens
+    )

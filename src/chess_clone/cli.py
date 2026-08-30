@@ -27,6 +27,10 @@ from chess_clone.modeling import (
     evaluate_saved_artifact,
     train_personalized_ranker,
 )
+from chess_clone.modeling.boosted_training import (
+    default_boosted_artifact_dir,
+    train_boosted_rankers,
+)
 from chess_clone.providers import LichessProvider, ProviderError
 
 app = typer.Typer(no_args_is_help=True, help="Personalized chess data workflows.")
@@ -128,6 +132,20 @@ def _latest_games_file(username: str, processed_dir: Path) -> Path:
     if not matches:
         raise FileNotFoundError(
             f"No normalized game dataset found for '{username}' in {processed_dir}"
+        )
+    return max(matches, key=lambda path: path.stat().st_mtime_ns)
+
+
+def _latest_rf_artifact(username: str, artifact_root: Path) -> Path:
+    safe_username = username.strip().lower()
+    matches = [
+        path
+        for path in artifact_root.glob(f"{safe_username}_*rf_baseline*")
+        if (path / "split_metadata.json").is_file()
+    ]
+    if not matches:
+        raise FileNotFoundError(
+            f"No Random Forest artifact found for '{username}' in {artifact_root}"
         )
     return max(matches, key=lambda path: path.stat().st_mtime_ns)
 
@@ -420,6 +438,67 @@ def evaluate_model(
         raise typer.Exit(code=1) from exc
     typer.echo(f"Saved model evaluation: {artifact_path}")
     typer.echo(json.dumps(metrics, indent=2, sort_keys=True))
+
+
+@app.command("train-boosted-model")
+def train_boosted_model(
+    username: Annotated[str, typer.Argument(help="Player username")],
+    features: Annotated[
+        Path | None,
+        typer.Option(help="BehaviorFeature Parquet; defaults to latest player batch"),
+    ] = None,
+    analysis: Annotated[
+        Path | None,
+        typer.Option(help="Stockfish analysis Parquet; defaults to latest player batch"),
+    ] = None,
+    games: Annotated[
+        Path | None,
+        typer.Option(help="Normalized games Parquet; defaults to latest player batch"),
+    ] = None,
+    rf_artifact: Annotated[
+        Path | None,
+        typer.Option(help="Preserved Random Forest artifact used for split comparison"),
+    ] = None,
+    artifact_dir: Annotated[
+        Path | None,
+        typer.Option(help="New CatBoost artifact directory"),
+    ] = None,
+    processed_dir: Annotated[
+        Path, typer.Option(hidden=True, help="Processed Parquet directory")
+    ] = Path("data/processed"),
+    artifact_root: Annotated[
+        Path, typer.Option(hidden=True, help="Local model artifact root")
+    ] = Path("artifacts/models"),
+) -> None:
+    """Train grouped CatBoost ablations on the preserved chronological split."""
+
+    try:
+        feature_path = features or _latest_feature_file(username, processed_dir)
+        analysis_path = analysis or _latest_analysis_file(username, processed_dir)
+        games_path = games or _latest_games_file(username, processed_dir)
+        rf_path = rf_artifact or _latest_rf_artifact(username, artifact_root)
+        destination = artifact_dir or default_boosted_artifact_dir(
+            username, artifact_root
+        )
+        summary = train_boosted_rankers(
+            username,
+            features_path=feature_path,
+            analysis_path=analysis_path,
+            games_path=games_path,
+            rf_artifact_dir=rf_path,
+            artifact_dir=destination,
+        )
+    except (FileNotFoundError, FileExistsError, RuntimeError, ValueError) as exc:
+        typer.echo(f"Boosted model training failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo("Grouped CatBoost training complete")
+    typer.echo(f"  Player: {summary.username}")
+    typer.echo(f"  Total decisions: {summary.total_decisions}")
+    typer.echo(f"  Usable top-5 decisions: {summary.usable_decisions}")
+    typer.echo(f"  Outside top 5: {summary.outside_top_5_decisions}")
+    typer.echo(f"  Runtime seconds: {summary.runtime_seconds:.3f}")
+    typer.echo(f"  Artifact directory: {summary.artifact_dir}")
 
 
 if __name__ == "__main__":

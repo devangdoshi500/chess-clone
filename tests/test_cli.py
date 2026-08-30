@@ -212,3 +212,40 @@ def test_cli_evaluate_model_prints_saved_metrics(monkeypatch, tmp_path: Path) ->
 
     assert result.exit_code == 0, result.output
     assert '"accuracy": 0.5' in result.output
+
+
+def test_cli_train_boosted_model_prints_artifact(monkeypatch, tmp_path: Path) -> None:
+    artifact_dir = tmp_path / "catboost"
+
+    def fake_train(username, **kwargs):
+        return SimpleNamespace(
+            username=username,
+            total_decisions=100,
+            usable_decisions=88,
+            outside_top_5_decisions=12,
+            runtime_seconds=2.5,
+            artifact_dir=kwargs["artifact_dir"],
+        )
+
+    monkeypatch.setattr(cli, "train_boosted_rankers", fake_train)
+    result = runner.invoke(
+        cli.app,
+        [
+            "train-boosted-model",
+            "TargetPlayer",
+            "--features",
+            str(tmp_path / "features.parquet"),
+            "--analysis",
+            str(tmp_path / "analysis.parquet"),
+            "--games",
+            str(tmp_path / "games.parquet"),
+            "--rf-artifact",
+            str(tmp_path / "rf"),
+            "--artifact-dir",
+            str(artifact_dir),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Grouped CatBoost training complete" in result.output
+    assert "Usable top-5 decisions: 88" in result.output

@@ -161,3 +161,21 @@ Inspect a saved evaluation with:
 ```bash
 python -m chess_clone.cli evaluate-model artifacts/models/RUN_DIRECTORY
 ```
+
+Train the stronger grouped CatBoost experiment while preserving the Random
+Forest split and artifacts:
+
+```bash
+python -m chess_clone.cli train-boosted-model DrNykterstein \
+  --features data/processed/features_drnykterstein_BATCH.parquet \
+  --analysis data/processed/analysis_drnykterstein_BATCH.parquet \
+  --games data/processed/games_drnykterstein_BATCH.parquet \
+  --rf-artifact artifacts/models/RF_BASELINE_DIRECTORY
+```
+
+The grouped model uses CatBoost `QuerySoftMax`: the candidates from one player
+decision form one query, the chosen candidate has relevance 1, and all other
+candidates have relevance 0. Candidate relevance scores are normalized with a
+within-query softmax. A single temperature is fitted on validation games only
+for probability calibration. Player-history tendency features are computed in
+chronological order for training and frozen before validation/test transforms.
