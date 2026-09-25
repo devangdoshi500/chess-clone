@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "players": [
+    {
+      "username": "FTakata",
+      "positions": "../artifacts/benchmarks/cross-rating-available/ftakata/normalized/positions_ftakata_20260906T180743931476Z.parquet",
+      "games": "../artifacts/benchmarks/cross-rating-available/ftakata/normalized/games_ftakata_20260906T180743931476Z.parquet"
+    },
+    {
+      "username": "CEDRO1",
+      "positions": "../artifacts/benchmarks/cross-rating-available/cedro1/normalized/positions_cedro1_20260906T180747670638Z.parquet",
+      "games": "../artifacts/benchmarks/cross-rating-available/cedro1/normalized/games_cedro1_20260906T180747670638Z.parquet"
+    },
+    {
+      "username": "mgimmo",
+      "positions": "../artifacts/benchmarks/cross-rating-available/mgimmo/normalized/positions_mgimmo_20260906T180749656103Z.parquet",
+      "games": "../artifacts/benchmarks/cross-rating-available/mgimmo/normalized/games_mgimmo_20260906T180749656103Z.parquet"
+    },
+    {
+      "username": "sha256",
+      "positions": "../artifacts/benchmarks/cross-rating-available/sha256/normalized/positions_sha256_20260906T180817344006Z.parquet",
+      "games": "../artifacts/benchmarks/cross-rating-available/sha256/normalized/games_sha256_20260906T180817344006Z.parquet"
+    },
+    {
+      "username": "boom-stick34",
+      "positions": "../artifacts/benchmarks/cross-rating-available/boom-stick34/normalized/positions_boom-stick34_20260906T180921022718Z.parquet",
+      "games": "../artifacts/benchmarks/cross-rating-available/boom-stick34/normalized/games_boom-stick34_20260906T180921022718Z.parquet"
+    },
+    {
+      "username": "Bercut1985",
+      "positions": "../artifacts/benchmarks/cross-rating-available/bercut1985/normalized/positions_bercut1985_20260906T181026891414Z.parquet",
+      "games": "../artifacts/benchmarks/cross-rating-available/bercut1985/normalized/games_bercut1985_20260906T181026891414Z.parquet"
+    }
+  ]
+}

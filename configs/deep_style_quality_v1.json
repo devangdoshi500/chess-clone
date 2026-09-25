@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "seed": 20260920,
+  "games_per_player": 5,
+  "thresholds": "artifacts/benchmarks/tactical-v3-winning-chance/thresholds.json",
+  "sampling": "First five whole confirmation games per player sorted by SHA256(seed:game_id), independent of predictions or outcomes; restrict all arms to common target decisions if a donor is unavailable.",
+  "engine": "Existing SinglePV 20000-node child search, mover POV, cached; frozen 5-point winning-chance tolerance and categorical mate handling.",
+  "purpose": "Post-selection diagnostic of human similarity, reference soundness and mistake-size distribution; not another tuning set or a replacement for playing-style fidelity."
+}

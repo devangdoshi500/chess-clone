@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "players": [
+    {
+      "username": "DrNykterstein",
+      "intended_rating_band": "elite",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "Elite reference; label is separate from observed rating."
+    },
+    {
+      "username": "EneaScarabeo",
+      "intended_rating_band": "1200",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "User-supplied approximate rating band; report observed historical ratings separately."
+    }
+  ]
+}

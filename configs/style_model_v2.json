@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "experiment_id": "style-model-v2-prototype",
+  "seed": 20260922,
+  "status": "declared_before_model_implementation",
+  "objective": "Improve recognizable player-specific behavior over complete games; exact move accuracy is a guardrail, not the optimization target.",
+  "scope": {
+    "provider": "lichess",
+    "rated": true,
+    "variant": "standard",
+    "speed": "blitz",
+    "rating_min": 1300,
+    "rating_max": 1700,
+    "since": "2024-09-22T00:00:00+00:00",
+    "until": "2026-09-22T00:00:00+00:00",
+    "no_live_clock_inputs": true,
+    "excluded_inputs": [
+      "remaining_clock",
+      "move_duration",
+      "time_pressure",
+      "result",
+      "engine_labels",
+      "completed_game_opening_tags"
+    ]
+  },
+  "capacity_scenarios": [
+    {
+      "name": "strict_3_0",
+      "kind": "exact",
+      "time_controls": ["180+0"]
+    },
+    {
+      "name": "narrow_3_to_5_minute_blitz",
+      "kind": "initial_seconds_range",
+      "minimum_initial_seconds": 180,
+      "maximum_initial_seconds": 300
+    }
+  ],
+  "prototype": {
+    "target_players": 20,
+    "development_players": 14,
+    "evaluation_players": 6,
+    "games_per_player": 500,
+    "history_games": 400,
+    "validation_games": 50,
+    "evaluation_games": 50,
+    "evidence_status": "Development-only architecture comparison. Local players were used in prior v1 work, so the prototype evaluation cannot be presented as fresh independent confirmation.",
+    "time_control_selection": "Use the first capacity scenario with at least 20 locally supported players; capacity is label-free and cannot select model settings."
+  },
+  "full_scale_target": {
+    "target_players": 100,
+    "development_players": 70,
+    "confirmation_players": 30,
+    "games_per_player": 1000,
+    "history_games": 800,
+    "validation_games": 100,
+    "confirmation_games": 100,
+    "target_decisions": [2000000, 5000000]
+  },
+  "model_comparison": {
+    "baseline": "Frozen population policy plus independently fitted v1 conditional-logit residual.",
+    "candidate": "Frozen population logits plus a jointly trained player-conditioned legal-move scorer.",
+    "player_embedding_dimensions": [32, 64],
+    "sequence_context_plies": [0, 8, 16],
+    "candidate_objectives": [
+      "legal-move listwise imitation",
+      "contrastive player identity",
+      "behavioral distribution matching",
+      "population-policy quality regularization"
+    ],
+    "selection_rule": "On development players only, select the smallest candidate that minimizes equal-player generated identity error while replay style TV improves over the v1 residual and quality guardrails pass."
+  },
+  "controls": [
+    "population_policy",
+    "shared_player_condition",
+    "wrong_player_condition",
+    "personal_player_condition",
+    "v1_personal_residual"
+  ],
+  "evaluation": {
+    "generated_games_per_player_per_arm": 25,
+    "matched": ["opponent", "color", "opening", "sampling_quantile"],
+    "primary_metrics": [
+      "blind player-identity classification",
+      "whole-game behavioral distance",
+      "opening and pawn-structure distance",
+      "exchange and aggression distance",
+      "piece-wing and phase-transition distance",
+      "sequence distance"
+    ],
+    "quality_guardrails": [
+      "legal move rate equals 1.0",
+      "personal NLL no worse than shared",
+      "personal exact accuracy no more than 2 percentage points below shared",
+      "sampled reference-loss difference versus shared has a 95% upper bound no greater than 1 winning-chance point"
+    ],
+    "prototype_gate": "On the six fixed prototype evaluation players, personal must beat shared and wrong-player controls on the generated identity composite; use the result only to decide whether to fund the scaled run.",
+    "promotion_rule": "Only the later scaled run may promote the model: on newly acquired untouched confirmation players, personal must beat shared and wrong-player controls on the preregistered generated identity composite with paired-player 95% intervals wholly below zero; replay style TV must also improve and every quality guardrail must pass."
+  },
+  "capacity_thresholds": [300, 500, 800, 1000]
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "seed": 20260922,
+  "source": "artifacts/benchmarks/deep-style-v1",
+  "sampled_policy_protocol": "configs/deep_style_sampled_policy_v2.json",
+  "players": "The same 19 development players with valid predeclared wrong-player controls; reuse the sampled-policy v2 selected validation game only for color and game context.",
+  "arms": ["population", "shared", "personal", "wrong"],
+  "rollouts_per_player_arm": 2,
+  "start_position": "standard initial chess position",
+  "opponent": "Frozen population policy with reversed player/opponent ratings and the same speed/time-control context.",
+  "coupling": "For each player, rollout index, ply, and mover role, use the same SHA256-derived uniform across arms; inverse-CDF sampling is over UCI-sorted legal moves.",
+  "max_plies": 160,
+  "termination": "Stop on python-chess game over with claimable draws enabled, or truncate at max_plies.",
+  "metrics": "Legal completion, termination/result/length, target move attributes by phase, piece and wing distributions, repeated-piece sequences, exchanges, and final target pawn structure. Compare with the selected human game descriptively; generated trajectories are development evidence only.",
+  "scope": "Frozen-model exploratory trajectory validation. No confirmation-player moves, Stockfish targets, parameter selection, or model changes."
+}

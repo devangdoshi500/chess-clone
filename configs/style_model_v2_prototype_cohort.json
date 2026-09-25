@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "experiment_id": "style-model-v2-prototype",
+  "declaration_sha256": "5bbc0e90e6a95111ab471695f2b29f9a110c0252b1d803ffd7b0446acc416100",
+  "capacity_report_sha256": "0c7191acdc11ace2e6ac5a69de10f3ac1930050d758c86ed2de9f4b18b43dd96",
+  "selection_basis": "Capacity metadata only; no move labels, position rows, or prior style scores were read.",
+  "selection_order": "Ascending SHA256(seed:casefolded_player) among players with at least 500 eligible strict_3_0 games; first 20 selected.",
+  "time_control_scenario": "strict_3_0",
+  "time_controls": ["180+0"],
+  "whole_game_rule": "For each selected player, use the newest 500 eligible unique whole games ordered by played_at then game_id; reject tied chronological split boundaries.",
+  "game_splits": {
+    "history": 400,
+    "validation": 50,
+    "evaluation": 50
+  },
+  "development_players": [
+    "baffaccio",
+    "steevinger2",
+    "facundoattack",
+    "sigusiensa",
+    "klasterlas",
+    "trocofonte",
+    "dave-l",
+    "decastrreos77",
+    "praveen_king",
+    "fabrigas_man",
+    "ir_mahdi2",
+    "zboss329",
+    "juliowi2",
+    "sartascn"
+  ],
+  "evaluation_players": [
+    "pertinentpoint",
+    "mahmoudfahmey",
+    "michymx",
+    "bishop32",
+    "mak81",
+    "demzzzz"
+  ],
+  "evidence_limit": "This is a development-only prototype cohort. These local players were involved in prior v1 work, so its evaluation split is not fresh independent confirmation and cannot promote the model."
+}

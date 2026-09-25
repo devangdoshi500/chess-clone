@@ -1,0 +1,618 @@
+{
+  "schema_version": 1,
+  "source": "Curated anonymized frozen deep-style v1 confirmation replay; not representative of aggregate performance",
+  "examples": [
+    {
+      "id": "opening_first",
+      "phase": "opening",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "actual": {
+        "uci": "d2d4",
+        "san": "d4"
+      },
+      "context": {
+        "player_rating": 1496,
+        "opponent_rating": 1479,
+        "time_control": "180+0",
+        "color": "white"
+      },
+      "policies": {
+        "personal": [
+          {
+            "uci": "d2d4",
+            "san": "d4",
+            "probability": 0.584062
+          },
+          {
+            "uci": "e2e4",
+            "san": "e4",
+            "probability": 0.232959
+          },
+          {
+            "uci": "e2e3",
+            "san": "e3",
+            "probability": 0.071376
+          }
+        ],
+        "shared": [
+          {
+            "uci": "e2e4",
+            "san": "e4",
+            "probability": 0.727061
+          },
+          {
+            "uci": "d2d4",
+            "san": "d4",
+            "probability": 0.137376
+          },
+          {
+            "uci": "e2e3",
+            "san": "e3",
+            "probability": 0.05335
+          }
+        ],
+        "population": [
+          {
+            "uci": "e2e4",
+            "san": "e4",
+            "probability": 0.805454
+          },
+          {
+            "uci": "d2d4",
+            "san": "d4",
+            "probability": 0.073607
+          },
+          {
+            "uci": "e2e3",
+            "san": "e3",
+            "probability": 0.059973
+          }
+        ]
+      }
+    },
+    {
+      "id": "opening_second",
+      "phase": "opening",
+      "fen": "rnbqkbnr/ppp1pppp/8/8/2pP4/8/PP2PPPP/RNBQKBNR w KQkq - 0 3",
+      "actual": {
+        "uci": "e2e3",
+        "san": "e3"
+      },
+      "context": {
+        "player_rating": 1551,
+        "opponent_rating": 1474,
+        "time_control": "180+0",
+        "color": "white"
+      },
+      "policies": {
+        "personal": [
+          {
+            "uci": "e2e4",
+            "san": "e4",
+            "probability": 0.341736
+          },
+          {
+            "uci": "e2e3",
+            "san": "e3",
+            "probability": 0.287533
+          },
+          {
+            "uci": "g1f3",
+            "san": "Nf3",
+            "probability": 0.12303
+          }
+        ],
+        "shared": [
+          {
+            "uci": "e2e4",
+            "san": "e4",
+            "probability": 0.460765
+          },
+          {
+            "uci": "g1f3",
+            "san": "Nf3",
+            "probability": 0.188068
+          },
+          {
+            "uci": "e2e3",
+            "san": "e3",
+            "probability": 0.134541
+          }
+        ],
+        "population": [
+          {
+            "uci": "e2e4",
+            "san": "e4",
+            "probability": 0.425606
+          },
+          {
+            "uci": "g1f3",
+            "san": "Nf3",
+            "probability": 0.218432
+          },
+          {
+            "uci": "e2e3",
+            "san": "e3",
+            "probability": 0.135265
+          }
+        ]
+      }
+    },
+    {
+      "id": "opening_outside",
+      "phase": "opening",
+      "fen": "r1bqkbnr/pppp1ppp/2n5/4P3/8/8/PPP1PPPP/RNBQKBNR w KQkq - 1 3",
+      "actual": {
+        "uci": "c1f4",
+        "san": "Bf4"
+      },
+      "context": {
+        "player_rating": 1496,
+        "opponent_rating": 1479,
+        "time_control": "180+0",
+        "color": "white"
+      },
+      "policies": {
+        "personal": [
+          {
+            "uci": "e2e4",
+            "san": "e4",
+            "probability": 0.419991
+          },
+          {
+            "uci": "e2e3",
+            "san": "e3",
+            "probability": 0.216362
+          },
+          {
+            "uci": "g1f3",
+            "san": "Nf3",
+            "probability": 0.090317
+          }
+        ],
+        "shared": [
+          {
+            "uci": "e2e4",
+            "san": "e4",
+            "probability": 0.453106
+          },
+          {
+            "uci": "g1f3",
+            "san": "Nf3",
+            "probability": 0.172817
+          },
+          {
+            "uci": "e2e3",
+            "san": "e3",
+            "probability": 0.156499
+          }
+        ],
+        "population": [
+          {
+            "uci": "e2e4",
+            "san": "e4",
+            "probability": 0.415065
+          },
+          {
+            "uci": "g1f3",
+            "san": "Nf3",
+            "probability": 0.206959
+          },
+          {
+            "uci": "e2e3",
+            "san": "e3",
+            "probability": 0.151708
+          }
+        ]
+      }
+    },
+    {
+      "id": "middlegame_first",
+      "phase": "middlegame",
+      "fen": "r1b1kbnr/pp1p2pp/2p5/4p3/4P3/2N2N2/PPP2PPP/R2qKB1R w KQkq - 0 10",
+      "actual": {
+        "uci": "a1d1",
+        "san": "Rxd1"
+      },
+      "context": {
+        "player_rating": 1496,
+        "opponent_rating": 1479,
+        "time_control": "180+0",
+        "color": "white"
+      },
+      "policies": {
+        "personal": [
+          {
+            "uci": "a1d1",
+            "san": "Rxd1",
+            "probability": 0.412619
+          },
+          {
+            "uci": "c3d1",
+            "san": "Nxd1",
+            "probability": 0.34545
+          },
+          {
+            "uci": "e1d1",
+            "san": "Kxd1",
+            "probability": 0.241931
+          }
+        ],
+        "shared": [
+          {
+            "uci": "a1d1",
+            "san": "Rxd1",
+            "probability": 0.581563
+          },
+          {
+            "uci": "e1d1",
+            "san": "Kxd1",
+            "probability": 0.211185
+          },
+          {
+            "uci": "c3d1",
+            "san": "Nxd1",
+            "probability": 0.207252
+          }
+        ],
+        "population": [
+          {
+            "uci": "a1d1",
+            "san": "Rxd1",
+            "probability": 0.536937
+          },
+          {
+            "uci": "e1d1",
+            "san": "Kxd1",
+            "probability": 0.27948
+          },
+          {
+            "uci": "c3d1",
+            "san": "Nxd1",
+            "probability": 0.183583
+          }
+        ]
+      }
+    },
+    {
+      "id": "middlegame_second",
+      "phase": "middlegame",
+      "fen": "rnbq3r/pppk1pbp/3P2p1/8/2P2BQ1/2N4P/PPP3P1/R3K1NR b KQ - 2 13",
+      "actual": {
+        "uci": "f7f5",
+        "san": "f5"
+      },
+      "context": {
+        "player_rating": 1619,
+        "opponent_rating": 1557,
+        "time_control": "180+2",
+        "color": "black"
+      },
+      "policies": {
+        "personal": [
+          {
+            "uci": "d7c6",
+            "san": "Kc6",
+            "probability": 0.465533
+          },
+          {
+            "uci": "f7f5",
+            "san": "f5",
+            "probability": 0.280672
+          },
+          {
+            "uci": "d7e8",
+            "san": "Ke8",
+            "probability": 0.253795
+          }
+        ],
+        "shared": [
+          {
+            "uci": "d7c6",
+            "san": "Kc6",
+            "probability": 0.47774
+          },
+          {
+            "uci": "d7e8",
+            "san": "Ke8",
+            "probability": 0.263682
+          },
+          {
+            "uci": "f7f5",
+            "san": "f5",
+            "probability": 0.258578
+          }
+        ],
+        "population": [
+          {
+            "uci": "d7c6",
+            "san": "Kc6",
+            "probability": 0.54056
+          },
+          {
+            "uci": "d7e8",
+            "san": "Ke8",
+            "probability": 0.259654
+          },
+          {
+            "uci": "f7f5",
+            "san": "f5",
+            "probability": 0.199786
+          }
+        ]
+      }
+    },
+    {
+      "id": "middlegame_third",
+      "phase": "middlegame",
+      "fen": "rn2k2r/4npp1/4p1qp/1Q1pP3/p2P3P/1P2P3/PBP3P1/1K1R3R b kq - 0 17",
+      "actual": {
+        "uci": "b8c6",
+        "san": "Nbc6"
+      },
+      "context": {
+        "player_rating": 1490,
+        "opponent_rating": 1491,
+        "time_control": "180+0",
+        "color": "black"
+      },
+      "policies": {
+        "personal": [
+          {
+            "uci": "b8d7",
+            "san": "Nd7",
+            "probability": 0.374088
+          },
+          {
+            "uci": "e7c6",
+            "san": "Nec6",
+            "probability": 0.22935
+          },
+          {
+            "uci": "b8c6",
+            "san": "Nbc6",
+            "probability": 0.186966
+          }
+        ],
+        "shared": [
+          {
+            "uci": "b8d7",
+            "san": "Nd7",
+            "probability": 0.410291
+          },
+          {
+            "uci": "e7c6",
+            "san": "Nec6",
+            "probability": 0.200402
+          },
+          {
+            "uci": "b8c6",
+            "san": "Nbc6",
+            "probability": 0.18699
+          }
+        ],
+        "population": [
+          {
+            "uci": "b8d7",
+            "san": "Nd7",
+            "probability": 0.382061
+          },
+          {
+            "uci": "b8c6",
+            "san": "Nbc6",
+            "probability": 0.196663
+          },
+          {
+            "uci": "e7c6",
+            "san": "Nec6",
+            "probability": 0.180593
+          }
+        ]
+      }
+    },
+    {
+      "id": "endgame_first",
+      "phase": "endgame",
+      "fen": "3r2k1/5pp1/pR5p/8/P1pP1P2/8/6PP/7K b - - 0 30",
+      "actual": {
+        "uci": "d8d4",
+        "san": "Rxd4"
+      },
+      "context": {
+        "player_rating": 1381,
+        "opponent_rating": 1340,
+        "time_control": "300+0",
+        "color": "black"
+      },
+      "policies": {
+        "personal": [
+          {
+            "uci": "d8d4",
+            "san": "Rxd4",
+            "probability": 0.648676
+          },
+          {
+            "uci": "f7f6",
+            "san": "f6",
+            "probability": 0.042956
+          },
+          {
+            "uci": "c4c3",
+            "san": "c3",
+            "probability": 0.035889
+          }
+        ],
+        "shared": [
+          {
+            "uci": "d8d4",
+            "san": "Rxd4",
+            "probability": 0.649106
+          },
+          {
+            "uci": "c4c3",
+            "san": "c3",
+            "probability": 0.041684
+          },
+          {
+            "uci": "f7f6",
+            "san": "f6",
+            "probability": 0.04039
+          }
+        ],
+        "population": [
+          {
+            "uci": "d8d4",
+            "san": "Rxd4",
+            "probability": 0.654306
+          },
+          {
+            "uci": "f7f6",
+            "san": "f6",
+            "probability": 0.039747
+          },
+          {
+            "uci": "c4c3",
+            "san": "c3",
+            "probability": 0.034555
+          }
+        ]
+      }
+    },
+    {
+      "id": "endgame_second",
+      "phase": "endgame",
+      "fen": "8/2k5/Q4p1p/1R1p1Pp1/3P4/2P2N1P/5P1K/8 b - - 2 45",
+      "actual": {
+        "uci": "h6h5",
+        "san": "h5"
+      },
+      "context": {
+        "player_rating": 1574,
+        "opponent_rating": 1584,
+        "time_control": "180+0",
+        "color": "black"
+      },
+      "policies": {
+        "personal": [
+          {
+            "uci": "c7d7",
+            "san": "Kd7",
+            "probability": 0.313459
+          },
+          {
+            "uci": "h6h5",
+            "san": "h5",
+            "probability": 0.274359
+          },
+          {
+            "uci": "c7d8",
+            "san": "Kd8",
+            "probability": 0.267065
+          }
+        ],
+        "shared": [
+          {
+            "uci": "c7d7",
+            "san": "Kd7",
+            "probability": 0.340983
+          },
+          {
+            "uci": "c7d8",
+            "san": "Kd8",
+            "probability": 0.290515
+          },
+          {
+            "uci": "h6h5",
+            "san": "h5",
+            "probability": 0.269135
+          }
+        ],
+        "population": [
+          {
+            "uci": "c7d7",
+            "san": "Kd7",
+            "probability": 0.3115
+          },
+          {
+            "uci": "h6h5",
+            "san": "h5",
+            "probability": 0.277702
+          },
+          {
+            "uci": "c7d8",
+            "san": "Kd8",
+            "probability": 0.265396
+          }
+        ]
+      }
+    },
+    {
+      "id": "endgame_outside",
+      "phase": "endgame",
+      "fen": "8/6p1/5p2/p3kP2/1p2P1P1/1P4Kb/8/1B6 b - - 22 52",
+      "actual": {
+        "uci": "h3f1",
+        "san": "Bf1"
+      },
+      "context": {
+        "player_rating": 1531,
+        "opponent_rating": 1553,
+        "time_control": "180+0",
+        "color": "black"
+      },
+      "policies": {
+        "personal": [
+          {
+            "uci": "e5d4",
+            "san": "Kd4",
+            "probability": 0.245243
+          },
+          {
+            "uci": "e5d6",
+            "san": "Kd6",
+            "probability": 0.203224
+          },
+          {
+            "uci": "g7g5",
+            "san": "g5",
+            "probability": 0.201017
+          }
+        ],
+        "shared": [
+          {
+            "uci": "g7g5",
+            "san": "g5",
+            "probability": 0.243329
+          },
+          {
+            "uci": "e5d4",
+            "san": "Kd4",
+            "probability": 0.231973
+          },
+          {
+            "uci": "e5d6",
+            "san": "Kd6",
+            "probability": 0.199692
+          }
+        ],
+        "population": [
+          {
+            "uci": "e5d4",
+            "san": "Kd4",
+            "probability": 0.213805
+          },
+          {
+            "uci": "h3f1",
+            "san": "Bf1",
+            "probability": 0.205858
+          },
+          {
+            "uci": "g7g5",
+            "san": "g5",
+            "probability": 0.195581
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+dist/
+build/
+.env
+.DS_Store
+*.parquet
+
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/cache/
+artifacts/models/
+artifacts/benchmarks/
+
+# Local project handoffs and research notes are not part of the public portfolio.
+AGENTS.md
+PROJECT_STATUS.md
+docs/
+.agents/
+skills-lock.json
+demo/.openai/

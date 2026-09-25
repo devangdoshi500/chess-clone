@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "seed": 20260922,
+  "source": "artifacts/benchmarks/deep-style-v1",
+  "split": "development_validation",
+  "games_per_player": 1,
+  "samples_per_decision": 4,
+  "minimum_supported_players": 19,
+  "arms": ["population", "shared", "personal", "wrong"],
+  "sampling": "Restrict to development players with the already-declared date-eligible wrong-player donor (19/20 in deep-style v1). For each supported player, select the first whole validation game ordered by SHA256(seed:casefolded_player:game_id). For each decision and sample index, use one SHA256-derived uniform shared across arms and inverse-CDF sample over UCI-sorted legal moves.",
+  "wrong_player_control": "Reuse the declared date-eligible 300-game donor mapping from deep-style v1 validation. The v1 sampled-policy protocol failed before scoring because it required all 20 players; v2 predeclares the known 19-player common-support restriction.",
+  "engine": {
+    "stockfish_version": 18,
+    "nodes": 20000,
+    "multipv": 1,
+    "threads": 1,
+    "hash_mb": 16
+  },
+  "thresholds": "artifacts/benchmarks/tactical-v3-winning-chance/thresholds.json",
+  "promotion_scope": "Exploratory development-only sampled-policy guardrail. Report human similarity, reference soundness, mistake-size distributions, mates, player macros, and paired personal-minus-control intervals. Do not tune on confirmation players or claim generated-game fidelity."
+}

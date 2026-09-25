@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "seed": 42,
+  "discovery_cohort": "configs/population_1500_mvp.json",
+  "artifact_dir": "artifacts/models/population_1500_safe_profile_v4",
+  "thresholds": "artifacts/benchmarks/tactical-v3-winning-chance/thresholds.json",
+  "unseen_since": "2025-09-20T00:00:00+00:00",
+  "until": "2026-09-20T00:00:00+00:00",
+  "rating_min": 1300,
+  "rating_max": 1700,
+  "target_unseen_players": 20,
+  "max_candidate_players": 40,
+  "max_games_per_player": 200,
+  "max_decisions_per_player": 1500,
+  "minimum_games_per_unseen_player": 10,
+  "minimum_decisions_per_unseen_player": 300,
+  "quality_decisions_per_player": 200,
+  "discovery": "Opponents in preserved histories, excluding trained targets; descending eligible appearance count, then SHA256(seed:username). No model predictions used.",
+  "sampling": "Newest complete eligible games, prefix under decision cap; shared games belong to the first accepted player. Quality subset: seeded whole-game prefix per player.",
+  "interpretation": "Unseen-player histories are independent target players, not necessarily later than training. Report strict post-original-cutoff and known-player temporal subsets separately. Models, profile and temperatures remain frozen."
+}

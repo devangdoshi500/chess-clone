@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "players": [
+    {
+      "username": "EneaScarabeo",
+      "intended_rating_band": "1200",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "User-supplied approximate rating band; report observed historical ratings separately."
+    },
+    {
+      "username": "FTakata",
+      "intended_rating_band": "1200",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "User-supplied approximate rating band; report observed historical ratings separately."
+    },
+    {
+      "username": "jakubz",
+      "intended_rating_band": "1200",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "User-supplied approximate rating band; report observed historical ratings separately."
+    },
+    {
+      "username": "CEDRO1",
+      "intended_rating_band": "1400",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "User-supplied approximate rating band; report observed historical ratings separately."
+    },
+    {
+      "username": "mgimmo",
+      "intended_rating_band": "1400",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "User-supplied approximate rating band; report observed historical ratings separately."
+    },
+    {
+      "username": "sha256",
+      "intended_rating_band": "1600",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "User-supplied approximate rating band; report observed historical ratings separately."
+    },
+    {
+      "username": "boom-stick34",
+      "intended_rating_band": "1600",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "User-supplied approximate rating band; report observed historical ratings separately."
+    },
+    {
+      "username": "Bercut1985",
+      "intended_rating_band": "1600",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "User-supplied approximate rating band; report observed historical ratings separately."
+    },
+    {
+      "username": "DrNykterstein",
+      "intended_rating_band": "elite",
+      "games_requested": 300,
+      "perf_type": "blitz",
+      "notes": "Elite reference; label is separate from observed rating."
+    }
+  ]
+}

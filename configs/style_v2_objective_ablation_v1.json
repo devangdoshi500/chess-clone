@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "experiment_id": "style-v2-objective-ablation-v1",
+  "declared_date": "2026-09-25",
+  "seed": 20260925,
+  "embedding_dimension": 32,
+  "penalty": 0.001,
+  "optimizer": "float64 full-history L-BFGS-B; analytic sparse gradient; equal-player objective",
+  "max_iterations": 150,
+  "ftol": 1e-9,
+  "gtol": 1e-6,
+  "minimum_style_opportunities": 20,
+  "minimum_style_tv_gain": 0.0001,
+  "parity_tolerance": 1e-10,
+  "arms": [
+    {"name": "svd_parity", "initialization": "v1_svd", "train": false, "eligible": false},
+    {"name": "imitation_random", "initialization": "random", "train": true, "eligible": true},
+    {"name": "imitation_reconstructed", "initialization": "v1_svd", "train": true, "eligible": true},
+    {"name": "auxiliary_reconstructed", "initialization": "v1_svd", "train": true, "eligible": true,
+     "identity_weight": 0.1, "behavior_weight": 0.1, "population_kl_weight": 0.02},
+    {"name": "opportunity_reconstructed", "initialization": "v1_svd", "train": true, "eligible": true,
+     "opportunity_weight": 10.0}
+  ],
+  "training_scope": "Only the frozen 14 development histories. Every trained arm completes before any new validation scoring. No epochs, weights, arms, or thresholds added after outcomes.",
+  "objective_scope": "All trained arms use mean-player NLL plus 0.001/2 times mean-player squared effective coefficients. Auxiliary arm uses the original auxiliary weights, but deterministic next-alphabetic wrong identity and full-history per-player behavior moments instead of random minibatch estimates; this is an objective-family diagnostic, not an exact reproduction of the original optimizer.",
+  "opportunity_objective": "Equal-player, equal-supported-phase/attribute mean squared distribution distance (one half sum of squared category-rate errors), on history opportunities only. Original style-metric Boolean, moved-piece and destination-wing attributes; forced attributes excluded; minimum 20 opportunities. No validation target moments.",
+  "selection_rule": "Eligible finite completed arm must improve macro style TV over matched-history v1 by at least 0.0001, beat its own equal-player shared and next-alphabetic wrong controls, have NLL no worse than its shared control and exact accuracy no more than 0.02 below shared. Choose smallest TV among passing arms; declaration order breaks ties. Parity is never selectable. Report optimizer convergence separately; an iteration-limit arm is diagnostic only and ineligible.",
+  "held_out_scope": "Development validation only, with the original cross-player held-out quarantine. Six reserved players remain unadapted and unscored; original v1 confirmation remains unopened.",
+  "evidence_status": "Retrospective development-only objective/optimization ablation on previously inspected local players; no promotion, independent confirmation, strength or autonomous-style claim."
+}
